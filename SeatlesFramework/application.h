@@ -3,6 +3,11 @@
 
 namespace SeatlesFramework
 {
+	namespace render
+	{
+		class DirectXSystem;
+	}
+
 	class Window;
 
 	/// <summary>
@@ -27,5 +32,6 @@ namespace SeatlesFramework
 	private:
 
 		Window* mpWindow;
+		render::DirectXSystem* mpDirectXSystem;
 	};
 }
