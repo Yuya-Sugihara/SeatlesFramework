@@ -142,11 +142,13 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="debugUtility.cpp" />
     <ClCompile Include="SeatlesFramework.cpp" />
+    <ClCompile Include="singletonBase.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="debugUtility.h" />
+    <ClInclude Include="singletonBase.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>

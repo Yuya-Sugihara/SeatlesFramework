@@ -10,27 +10,6 @@ namespace SeatlesFramework
 	Application* Application::mpInstance = nullptr;
 
 	/// <summary>
-	/// インスタンス取得
-	/// </summary>
-	Application* Application::instance()
-	{
-		if (Application::mpInstance == nullptr)
-		{
-			Application::mpInstance = new Application();
-		}
-
-		return Application::mpInstance;
-	}
-
-	/// <summary>
-	/// 初期化処理
-	/// </summary>
-	void Application::init()
-	{
-		mpWindow = new Window(_T("SeatlesFramework"), 720, 480);
-	}
-
-	/// <summary>
 	/// 更新処理
 	/// </summary>
 	void Application::update()
@@ -41,20 +20,18 @@ namespace SeatlesFramework
 		}
 	}
 
-	/// <summary>
-	///	 破棄処理
-	/// </summary>
-	void Application::destroy()
+	Application::Application():
+		mpWindow(nullptr)
+	{
+		mpWindow = new Window(_T("SeatlesFramework"), 720, 480);
+	}
+
+	Application::Application(const Application&):
+		mpWindow(nullptr)
+	{}
+
+	Application::~Application()
 	{
 		SAFE_DELETE(mpWindow);
 	}
-
-	Application::Application():
-		mpWindow(nullptr)
-	{}
-
-	Application::Application(Application&):
-		mpWindow(nullptr)
-	{}
-
 }
