@@ -1,4 +1,5 @@
 #pragma once
+
 #include "singletonBase.h"
 
 namespace SeatlesFramework
@@ -23,15 +24,25 @@ namespace SeatlesFramework
 		/// </summary>
 		void update();
 
-	protected:
+		///	アクセサ
+		const Window* getWindow()const { return mpWindow; }
 
+	protected:
 		Application();
 		Application(const Application&);
 		~Application() override;
 
+		void onInitialize() override;
+		void onDestroy() override;
+
 	private:
+		void createSingletons();
+		void initializeSingletons();
+		void destroySingletons();
+
+		static int mMainWindowWidth;
+		static int mMainWindowHeight;
 
 		Window* mpWindow;
-		render::DirectXSystem* mpDirectXSystem;
 	};
 }

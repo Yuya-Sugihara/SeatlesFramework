@@ -17,19 +17,29 @@ namespace SeatlesFramework
 		static T* instance();
 
 		/// <summary>
+		/// ‰Šú‰»ˆ—‚ÌÀs
+		/// </summary>
+		void initialize();
+
+		/// <summary>
 		/// ”jŠüˆ—‚ÌÀs 
 		/// </summary>
 		void destroy();
 
 	protected:
-
 		SingletonBase();
 		SingletonBase(const SingletonBase<T>&);
 		virtual ~SingletonBase();
 
+		virtual void onInitialize();
+		virtual void onDestroy();
+
 	private:
 		static T* mpInstance;
 	};
+
+	template<class T>
+	T* SingletonBase<T>::mpInstance = nullptr;
 
 	template<class T>
 	T* SingletonBase<T>::instance()
@@ -43,8 +53,16 @@ namespace SeatlesFramework
 	}
 
 	template<class T>
+	void SingletonBase<T>::initialize()
+	{
+		onInitialize();
+	}
+
+	template<class T>
 	void SingletonBase<T>::destroy()
 	{
+		onDestroy();
+
 		SAFE_DELETE(mpInstance);
 	}
 
@@ -58,5 +76,13 @@ namespace SeatlesFramework
 
 	template<class T>
 	SingletonBase<T>::~SingletonBase()
+	{}
+
+	template<class T>
+	void SingletonBase<T>::onInitialize()
+	{}
+
+	template<class T>
+	void SingletonBase<T>::onDestroy()
 	{}
 }

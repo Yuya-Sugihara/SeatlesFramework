@@ -7,15 +7,18 @@ namespace SeatlesFramework
 	/// <summary>
 	/// コンストラクタ
 	/// </summary>
-	Window::Window(const wchar_t* applicationName, int windowWidth, int windowHeight)
+	Window::Window(const wchar_t* applicationName, int width, int height):
+		mWindowHandle(nullptr),
+		mWindowWidth(width),
+		mWindowHeight(height)
 	{
-		init(applicationName, windowWidth, windowHeight);
+		init(applicationName);
 	}
 	
 	/// <summary>
 	/// ウィンドウの初期化処理
 	/// </summary>
-	HRESULT Window::init(const wchar_t* applicationName, int windowWidth, int windowHeight)
+	HRESULT Window::init(const wchar_t* applicationName)
 	{
 		mWindowDesc = {};
 		mWindowDesc.cbSize = sizeof(WNDCLASSEX);
@@ -25,12 +28,12 @@ namespace SeatlesFramework
 
 		RegisterClassEx(&mWindowDesc);
 
-		RECT windowRect = { 0, 0, windowWidth, windowHeight };
+		RECT windowRect = { 0, 0, mWindowWidth, mWindowHeight };
 		/// ウィンドウサイズを補正する
 		AdjustWindowRect(&windowRect, WS_OVERLAPPEDWINDOW, false);
 
 		/// ウィンドウ作成
-		HWND hwnd = CreateWindow
+		mWindowHandle = CreateWindow
 		(
 			applicationName,	///	クラス名
 			applicationName,	///	タイトルバーの文字
@@ -46,7 +49,7 @@ namespace SeatlesFramework
 		);
 
 		/// ウィンドウ表示
-		ShowWindow(hwnd, SW_SHOW);
+		ShowWindow(mWindowHandle, SW_SHOW);
 
 		return S_OK;
 	}

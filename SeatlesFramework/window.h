@@ -21,15 +21,23 @@ namespace SeatlesFramework
 		/// </summary>
 		bool update();
 
+		/// アクセサ
+		const HWND getWindowHandle()const { return mWindowHandle; }
+		const int getWindowWidth() const { return mWindowWidth; }
+		const int getWindowHeight() const { return mWindowHeight; }
+
 	private: 
 
 		/// <summary>
 		/// ウィンドウの初期化処理
 		/// </summary>
-		HRESULT init(const wchar_t* applicationName, int windowWidth, int windowHeight);
+		HRESULT init(const wchar_t* applicationName);
 
 		WNDCLASSEX mWindowDesc;
+		HWND mWindowHandle;
 
+		int mWindowWidth;
+		int mWindowHeight;
 	};
 
 	/// <summary>

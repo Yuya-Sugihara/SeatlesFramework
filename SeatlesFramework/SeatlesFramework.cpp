@@ -13,6 +13,7 @@ using namespace SeatlesFramework;
 int WINAPI WinMain(HINSTANCE hInstance,HINSTANCE hPrevInstance,LPSTR lpCmdLine,int nCmdShow)
 {
     Application* app = Application::instance();
+    app->initialize();
     app->update();
     app->destroy();
 

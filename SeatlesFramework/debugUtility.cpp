@@ -6,21 +6,25 @@
 #include <stdlib.h>
 #include <cstdarg>
 #include <crtdbg.h>
+#include <string>
+#include <Windows.h>
 
 using namespace std;
 
 namespace SeatlesFramework
 {
-
-	/// <summary>
-	/// デバッグ情報を出力する
-	/// </summary>
-	void debugOutPut(const char* format, ...)
+	void traceLog(const char* format, ...)
 	{
-		va_list valist;
-		va_start(valist, format);
-		vprintf(format, valist);
-		va_end(valist);
+#if _DEBUG
+		char log[256];
+		va_list ap;
+
+		va_start(ap,format);
+		vsprintf_s(log, format, ap);
+		strcat_s(log, "\n");
+		OutputDebugStringA(log);
+		va_end(ap);
+#endif
 	}
 
 	/// <summary>

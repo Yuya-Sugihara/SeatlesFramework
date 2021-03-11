@@ -140,6 +140,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="assert.cpp" />
     <ClCompile Include="debugUtility.cpp" />
     <ClCompile Include="directXSystem.cpp" />
     <ClCompile Include="SeatlesFramework.cpp" />
@@ -148,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.h" />
+    <ClInclude Include="assert.h" />
     <ClInclude Include="debugUtility.h" />
     <ClInclude Include="directXSystem.h" />
     <ClInclude Include="singletonBase.h" />

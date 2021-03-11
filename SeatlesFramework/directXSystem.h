@@ -1,4 +1,5 @@
 #pragma once
+
 #include "singletonBase.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -23,9 +24,10 @@ namespace SeatlesFramework
 			DirectXSystem(const DirectXSystem&);
 			~DirectXSystem();
 
-		private:
+			void onInitialize() override;
+			void onDestroy() override;
 
-			void initialize();
+		private:
 			void createDevice();
 			void createDxgiFactory();
 			void createCommandDevices();
@@ -33,11 +35,13 @@ namespace SeatlesFramework
 
 			ID3D12Device* mpDevice;
 			IDXGIFactory6* mpDxgiFactory;
-			IDXGISwapChain4* mpSwapChain;
+			IDXGISwapChain1* mpSwapChain;
 
 			ID3D12CommandAllocator* mpCommandAllocator;
 			ID3D12CommandList* mpCommandList;
 			ID3D12CommandQueue* mpCommandQueue;
+
+			int mBackBufferCount;
 		};
 	}
 }
