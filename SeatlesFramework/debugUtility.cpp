@@ -9,31 +9,39 @@
 #include <string>
 #include <Windows.h>
 
+using namespace SeatlesFramework;
 using namespace std;
 
-namespace SeatlesFramework
+void Trace::traceLog(const char* format, ...)
 {
-	void traceLog(const char* format, ...)
-	{
 #if _DEBUG
-		char log[256];
-		va_list ap;
+	char log[256];
+	va_list ap;
 
-		va_start(ap,format);
-		vsprintf_s(log, format, ap);
-		strcat_s(log, "\n");
-		OutputDebugStringA(log);
-		va_end(ap);
+	va_start(ap,format);
+	vsprintf_s(log, format, ap);
+	strcat_s(log, "\n");
+	OutputDebugStringA(log);
+	va_end(ap);
 #endif
-	}
-
-	/// <summary>
-	/// メモリリークに関するダンプを出力する
-	/// </summary>
-	void dumpMemoryLeakReport()
-	{
-		_CrtDumpMemoryLeaks();
-	}
 }
+
+//void Trace::traceLog(const TCHAR* comment)
+//{
+//#if _DEBUG
+//
+//	OutputDebugString(comment);
+//
+//#endif
+//}
+
+/// <summary>
+/// メモリリークに関するダンプを出力する
+/// </summary>
+void SeatlesFramework::dumpMemoryLeakReport()
+{
+	_CrtDumpMemoryLeaks();
+}
+
 
 #endif

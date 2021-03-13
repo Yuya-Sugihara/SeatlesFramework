@@ -3,9 +3,12 @@
 #include "singletonBase.h"
 #include <d3d12.h>
 #include <dxgi1_6.h>
+#include <wrl.h>
 
 #pragma comment(lib,"d3d12.lib")
 #pragma comment(lib,"dxgi.lib")
+
+using namespace Microsoft::WRL;
 
 namespace SeatlesFramework
 {
@@ -18,6 +21,8 @@ namespace SeatlesFramework
 		{
 		public:
 			friend class SingletonBase<DirectXSystem>;
+
+			void update();
 
 		protected:
 			DirectXSystem();
@@ -32,13 +37,14 @@ namespace SeatlesFramework
 			void createDxgiFactory();
 			void createCommandDevices();
 			void createSwapChain();
+			void createRenderTargetView();
 
 			ID3D12Device* mpDevice;
 			IDXGIFactory6* mpDxgiFactory;
-			IDXGISwapChain1* mpSwapChain;
+			ComPtr<IDXGISwapChain3> mpSwapChain;
 
 			ID3D12CommandAllocator* mpCommandAllocator;
-			ID3D12CommandList* mpCommandList;
+			ID3D12GraphicsCommandList* mpCommandList;
 			ID3D12CommandQueue* mpCommandQueue;
 
 			int mBackBufferCount;

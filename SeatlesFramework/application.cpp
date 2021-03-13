@@ -17,7 +17,8 @@ void Application::update()
 {
 	while (!mpWindow->update())
 	{
-
+		//	DirectX‚ÌXVˆ—
+		render::DirectXSystem::instance()->update();
 	}
 }
 

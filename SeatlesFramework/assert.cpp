@@ -6,26 +6,28 @@
 
 void SeatlesFramework::throwAssertIfFailed(HRESULT result, const char* comment)
 {
-	if (result == S_OK)
+	if (SUCCEEDED(result))
 		return;
 
-	traceLog("------------------------------------------------");
+	//	Tips:  _com_errorが出た場合は変数の型を確認する
+	//			変数の型が違う場合でもS_OKが出ることがある
+	Trace::traceLog("------------------------------------------------");
 
 	char assertComment[128];
 	/// 要確認　変数の型
 	if (result == E_ACCESSDENIED)
 	{
 		sprintf_s(assertComment, "E_ACCESSDENIED: %s", comment);	
-		traceLog(assertComment);
-		traceLog("------------------------------------------------");
+		Trace::traceLog(assertComment);
+		Trace::traceLog("------------------------------------------------");
 
 		assert(false && "HRESULT:  E_ACCESSDENIED.");
 	}
 	else
 	{
 		sprintf_s(assertComment, "FAILED: %s", comment);
-		traceLog(assertComment);
-		traceLog("------------------------------------------------");
+		Trace::traceLog(assertComment);
+		Trace::traceLog("------------------------------------------------");
 
 		assert(false && "HRESULT:  FAILED.");
 	}

@@ -5,9 +5,12 @@
 #include "debugUtility.h"
 
 #include <cassert>
+#include <comdef.h>
+#include <vector>
 
 using namespace SeatlesFramework;
 using namespace render;
+using namespace std;
 
 DirectXSystem::DirectXSystem():
 	mpDevice(nullptr),
@@ -32,20 +35,32 @@ DirectXSystem::DirectXSystem(const DirectXSystem&) :
 DirectXSystem::~DirectXSystem()
 {}
 
+void DirectXSystem::update()
+{
+	//	コマンドアロケータリセット
+	HRESULT result = mpCommandAllocator->Reset();
+	throwAssertIfFailed(result,"コマンドアロケータのリセット処理に失敗しました。");
+
+	//	レンダーターゲットビューのセット
+	int backBufferIndex = mpSwapChain->GetCurrentBackBufferIndex();
+}
+
 void DirectXSystem::onInitialize()
 {
-	///	デバイス作成
+	//	デバイス作成
 	createDevice();
 
-	///	DxgiFactory作成
+	//	DxgiFactory作成
 	createDxgiFactory();
 
-	/// Command類作成
+	//	Command類作成
 	createCommandDevices();
 
-	///	SwapChain作成
+	//	SwapChain作成
 	createSwapChain();
 
+	//	レンダーターゲットビュー作成
+	createRenderTargetView();
 }
 
 void DirectXSystem::onDestroy()
@@ -106,6 +121,7 @@ void DirectXSystem::createCommandDevices()
 		IID_PPV_ARGS(&mpCommandList)
 	);
 	throwAssertIfFailed(result,"CommandListの作成に失敗しました。");
+	mpCommandList->Close();
 
 	/// コマンドキュー作成
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
@@ -142,6 +158,7 @@ void DirectXSystem::createSwapChain()
 	
 	///	SwapChain作成
 	HWND windowHandle = Application::instance()->getWindow()->getWindowHandle();
+	ComPtr<IDXGISwapChain1> tempSwapChain = nullptr;
 	HRESULT result = mpDxgiFactory->CreateSwapChainForHwnd
 	(
 		mpCommandQueue,
@@ -149,11 +166,48 @@ void DirectXSystem::createSwapChain()
 		&swapChainDesc,
 		nullptr,
 		nullptr,
-		(IDXGISwapChain1**) &mpSwapChain
+		(IDXGISwapChain1**)tempSwapChain.GetAddressOf()
 	);
+	tempSwapChain.As(&mpSwapChain);
 
-	///	ここで失敗する
 	throwAssertIfFailed(result, "SwapChainの作成に失敗しました。");
+}
 
+void DirectXSystem::createRenderTargetView()
+{
+	//	レンダーターゲットビューのためのディスクリプターヒープ作成
+	D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+
+	//	タイプはレンダーターゲットビュー
+	heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	//	他にGPUはないので0
+	heapDesc.NodeMask = 0;
+	//	表、裏の分の２つ
+	heapDesc.NumDescriptors = mBackBufferCount;
+	//	シェーダーからの見え方
+	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+
+	//	作成
+	ID3D12DescriptorHeap* rtvHeap = nullptr;
+	HRESULT result = mpDevice->CreateDescriptorHeap
+	(
+		&heapDesc,
+		IID_PPV_ARGS(&rtvHeap)
+	);
+	throwAssertIfFailed(result, "レンダーターゲットビューのためのディスクリプターヒープの作成に失敗しました。");
+
+	//	スワップチェーンと紐づけ
+	vector<ID3D12Resource*> backBuffers(mBackBufferCount);
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	for (int i = 0; i < mBackBufferCount; i++)
+	{
+		//	バックバッファー取得
+		result = mpSwapChain->GetBuffer(i, IID_PPV_ARGS(&backBuffers[i]));
+		throwAssertIfFailed(result, "バックバッファーの取得に失敗しました。");
+
+		//	紐づけ
+		mpDevice->CreateRenderTargetView(backBuffers[i],nullptr,handle);
+		handle.ptr += mpDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	}
 }
 

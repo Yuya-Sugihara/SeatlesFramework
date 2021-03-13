@@ -1,14 +1,21 @@
 #pragma once
 
 #include <iostream>
+#include <Windows.h>
 
 namespace SeatlesFramework
 {
-	/// <summary>
-	/// デバッグウィンドウにトレースログを出力する
-	/// 内部処理を_DEBUGでくくっているので、関数呼び出し時に囲む必要はない
-	/// </summary>
-	void traceLog(const char* format, ...);
+	class Trace
+	{
+	public:
+		/// <summary>
+		/// デバッグウィンドウにトレースログを出力する
+		/// 内部処理を_DEBUGでくくっているので、関数呼び出し時に囲む必要はない
+		/// </summary>
+		void static traceLog(const char* format, ...);
+
+		//void static traceLog(const TCHAR* comment);
+	};
 
 #ifdef _DEBUG
 
