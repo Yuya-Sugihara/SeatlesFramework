@@ -38,6 +38,10 @@ namespace SeatlesFramework
 			void createCommandDevices();
 			void createSwapChain();
 			void createRenderTargetView();
+			
+#if _DEBUG
+			void enableDebugLayer();
+#endif
 
 			ID3D12Device* mpDevice;
 			IDXGIFactory6* mpDxgiFactory;
@@ -46,6 +50,7 @@ namespace SeatlesFramework
 			ID3D12CommandAllocator* mpCommandAllocator;
 			ID3D12GraphicsCommandList* mpCommandList;
 			ID3D12CommandQueue* mpCommandQueue;
+			ID3D12DescriptorHeap* mpRtvDescriptorHeap;
 
 			int mBackBufferCount;
 		};

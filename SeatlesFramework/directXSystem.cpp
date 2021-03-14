@@ -19,6 +19,7 @@ DirectXSystem::DirectXSystem():
 	mpCommandAllocator(nullptr),
 	mpCommandList(nullptr),
 	mpCommandQueue(nullptr),
+	mpRtvDescriptorHeap(nullptr),
 	mBackBufferCount(2)
 {}
 
@@ -29,6 +30,7 @@ DirectXSystem::DirectXSystem(const DirectXSystem&) :
 	mpCommandAllocator(nullptr),
 	mpCommandList(nullptr),
 	mpCommandQueue(nullptr),
+	mpRtvDescriptorHeap(nullptr),
 	mBackBufferCount(2)
 {}
 
@@ -37,40 +39,114 @@ DirectXSystem::~DirectXSystem()
 
 void DirectXSystem::update()
 {
-	//	コマンドアロケータリセット
-	HRESULT result = mpCommandAllocator->Reset();
-	throwAssertIfFailed(result,"コマンドアロケータのリセット処理に失敗しました。");
+	int backBufferIndex = mpSwapChain->GetCurrentBackBufferIndex();
+	ID3D12Resource* pBackBuffer = nullptr;
+	HRESULT result = mpSwapChain->GetBuffer(backBufferIndex,IID_PPV_ARGS(&pBackBuffer));
+
+	//	リソースバリアセット
+	//	明示的にリソースを何に使用するかをGPUに渡す
+	D3D12_RESOURCE_BARRIER barriorDesc = {};
+	barriorDesc.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+	barriorDesc.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+	barriorDesc.Transition.pResource = pBackBuffer;
+	barriorDesc.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+	barriorDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	mpCommandList->ResourceBarrier(1, &barriorDesc);
 
 	//	レンダーターゲットビューのセット
-	int backBufferIndex = mpSwapChain->GetCurrentBackBufferIndex();
+	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeap = mpRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
+	rtvHeap.ptr += backBufferIndex * mpDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+
+	mpCommandList->OMSetRenderTargets
+	(
+		1, //			レンダーターゲット数
+		&rtvHeap, //	レンダーターゲットハンドルのアドレス
+		true, //		複数時に連続しているか
+		nullptr //		深度ステンシルバッファービューのハンドル
+	);
+
+	//	レンダーターゲットのクリア
+	float clearColor[] = { 0.5f,0.16f,0.56f,1.0f };
+	mpCommandList->ClearRenderTargetView(rtvHeap, clearColor, 0, nullptr);
+
+	barriorDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+	mpCommandList->ResourceBarrier(1, &barriorDesc);
+
+	mpCommandList->Close();
+
+	//	フェンス作成
+	//	GPUの処理終了を知ることができる
+	ID3D12Fence* fence = nullptr;
+	UINT64 fenceValue = 0;
+	result = mpDevice->CreateFence(fenceValue, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+
+	//	コマンドキューに追加して実行
+	ID3D12CommandList* commandLists[] = { mpCommandList };
+	mpCommandQueue->ExecuteCommandLists(1, commandLists);
+	mpCommandQueue->Signal(fence, ++fenceValue);
+
+	if (fence->GetCompletedValue() != fenceValue)
+	{
+		//	GPU処理終了時のイベント取得
+		void* event = CreateEvent(nullptr, false, false, nullptr);
+		fence->SetEventOnCompletion(fenceValue, event);
+		if (event == nullptr)
+		{
+			assert(false && "フェンスのイベントハンドラ作成に失敗しました。");
+			return;
+		}
+
+		//	イベントが発行されるまで待つ
+		WaitForSingleObject(event, INFINITE);
+		CloseHandle(event);
+	}
+
+	SAFE_RELEASE(fence);
+	SAFE_RELEASE(pBackBuffer);
+
+	mpCommandAllocator->Reset();
+	mpCommandList->Reset(mpCommandAllocator,nullptr);
+
+	mpSwapChain->Present(1,0);
 }
 
 void DirectXSystem::onInitialize()
 {
+#if _DEBUG
+
+	enableDebugLayer();
+
+#endif
+
 	//	デバイス作成
 	createDevice();
 
 	//	DxgiFactory作成
 	createDxgiFactory();
-
+	
 	//	Command類作成
 	createCommandDevices();
-
+	
 	//	SwapChain作成
 	createSwapChain();
-
+	
 	//	レンダーターゲットビュー作成
 	createRenderTargetView();
 }
 
 void DirectXSystem::onDestroy()
 {
-	///	勝手に破棄されるので明示的にdeleteする必要なし
-	//SAFE_DELETE(mpDevice);
-	//SAFE_DELETE(mpDxgiFactory);
-	//SAFE_DELETE(mpSwapChain);
-	//SAFE_DELETE(mpCommandAllocator);
-	//SAFE_DELETE(mpCommandList);
+	//	create〇〇の場合はSAFE_RELEASE
+	SAFE_RELEASE(mpRtvDescriptorHeap);
+	SAFE_RELEASE(mpCommandQueue);
+	SAFE_RELEASE(mpCommandList);
+	SAFE_RELEASE(mpCommandAllocator);
+	//SAFE_RELEASE(mpSwapChain);
+	SAFE_RELEASE(mpDxgiFactory);
+	SAFE_RELEASE(mpDevice);
+
 }
 
 void DirectXSystem::createDevice()
@@ -97,7 +173,13 @@ void DirectXSystem::createDevice()
 
 void DirectXSystem::createDxgiFactory()
 {
-	HRESULT result = CreateDXGIFactory(IID_PPV_ARGS(&mpDxgiFactory));
+	HRESULT result = S_OK;
+#if _DEBUG
+	result = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG, IID_PPV_ARGS(&mpDxgiFactory));
+#elif
+	result = CreateDXGIFactory(IID_PPV_ARGS(&mpDxgiFactory));
+#endif
+
 	throwAssertIfFailed(result, "DXGIFactory作成に失敗しました。");
 }
 
@@ -122,6 +204,7 @@ void DirectXSystem::createCommandDevices()
 	);
 	throwAssertIfFailed(result,"CommandListの作成に失敗しました。");
 	mpCommandList->Close();
+	mpCommandList->Reset(mpCommandAllocator, nullptr);
 
 	/// コマンドキュー作成
 	D3D12_COMMAND_QUEUE_DESC commandQueueDesc = {};
@@ -188,17 +271,16 @@ void DirectXSystem::createRenderTargetView()
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	//	作成
-	ID3D12DescriptorHeap* rtvHeap = nullptr;
 	HRESULT result = mpDevice->CreateDescriptorHeap
 	(
 		&heapDesc,
-		IID_PPV_ARGS(&rtvHeap)
+		IID_PPV_ARGS(&mpRtvDescriptorHeap)
 	);
 	throwAssertIfFailed(result, "レンダーターゲットビューのためのディスクリプターヒープの作成に失敗しました。");
 
 	//	スワップチェーンと紐づけ
 	vector<ID3D12Resource*> backBuffers(mBackBufferCount);
-	D3D12_CPU_DESCRIPTOR_HANDLE handle = rtvHeap->GetCPUDescriptorHandleForHeapStart();
+	D3D12_CPU_DESCRIPTOR_HANDLE handle = mpRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	for (int i = 0; i < mBackBufferCount; i++)
 	{
 		//	バックバッファー取得
@@ -209,5 +291,21 @@ void DirectXSystem::createRenderTargetView()
 		mpDevice->CreateRenderTargetView(backBuffers[i],nullptr,handle);
 		handle.ptr += mpDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	}
+
+	//	backBufferのRelease
+	for (auto backBuffer : backBuffers)
+	{
+		SAFE_RELEASE(backBuffer);
+	}
+	backBuffers.clear();
 }
 
+void DirectXSystem::enableDebugLayer()
+{
+	ID3D12Debug* debugLayer = nullptr;
+	HRESULT result = D3D12GetDebugInterface(IID_PPV_ARGS(&debugLayer));
+	throwAssertIfFailed(result,"デバッグレイヤーの作成に失敗しました。");
+
+	debugLayer->EnableDebugLayer();
+	SAFE_RELEASE(debugLayer);
+}
