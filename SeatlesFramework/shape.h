@@ -15,10 +15,10 @@ namespace SeatlesFramework
 			Shape();
 			~Shape();
 
+			const D3D12_VERTEX_BUFFER_VIEW* getVertexBufferView() const { return &mVertexBufferView; }
 		private:
-
 			ID3D12Resource* mpVertexBuffer;
-
+			D3D12_VERTEX_BUFFER_VIEW mVertexBufferView;
 			XMFLOAT3 mVertices[3];
 
 		};

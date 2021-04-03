@@ -24,6 +24,8 @@ DirectXSystem::DirectXSystem():
 	mpPipelineState(nullptr),
 	mpRootSignature(nullptr),
 	mpTriangle(nullptr),
+	mViewport{},
+	mScissorRect{},
 	mBackBufferCount(2)
 {}
 
@@ -38,6 +40,8 @@ DirectXSystem::DirectXSystem(const DirectXSystem&) :
 	mpPipelineState(nullptr),
 	mpRootSignature(nullptr),
 	mpTriangle(nullptr),
+	mViewport{},
+	mScissorRect{},
 	mBackBufferCount(2)
 {}
 
@@ -61,6 +65,9 @@ void DirectXSystem::update()
 	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	mpCommandList->ResourceBarrier(1, &barriorDesc);
 
+	//	グラフィックスパイプラインセット
+	mpCommandList->SetPipelineState(mpPipelineState);
+
 	//	レンダーターゲットビューのセット
 	D3D12_CPU_DESCRIPTOR_HANDLE rtvHeap = mpRtvDescriptorHeap->GetCPUDescriptorHandleForHeapStart();
 	rtvHeap.ptr += backBufferIndex * mpDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
@@ -76,6 +83,28 @@ void DirectXSystem::update()
 	//	レンダーターゲットのクリア
 	float clearColor[] = { 0.5f,0.16f,0.56f,1.0f };
 	mpCommandList->ClearRenderTargetView(rtvHeap, clearColor, 0, nullptr);
+
+	//	ビューポートセット
+	mpCommandList->RSSetViewports(1,&mViewport);
+	//	シザー矩形セット
+	mpCommandList->RSSetScissorRects(1, &mScissorRect);
+
+	//	ルートシグネチャセット
+	mpCommandList->SetGraphicsRootSignature(mpRootSignature);
+
+	//	トポロジーセット
+	mpCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	//	頂点バッファセット
+	mpCommandList->IASetVertexBuffers
+	(
+		0, //	スロット番号
+		1, //	登録するバッファ数
+		mpTriangle->getVertexBufferView() //	描画に使用する頂点バッファビュー
+	);
+
+	//	描画命令セット(頂点数、インスタンス数、頂点データのオフセット、インスタンスのオフセット)
+	mpCommandList->DrawInstanced(3, 1, 0, 0);
 
 	barriorDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -436,7 +465,27 @@ void DirectXSystem::createGraphicsPipelineState()
 
 	//	グラフィックスパイプラインステート作成
 	result = mpDevice->CreateGraphicsPipelineState(&pipeLineDesc, IID_PPV_ARGS(&mpPipelineState));
+
+	//	ビューポート初期化
+	mViewport.Width = (float)Application::instance()->getWindow()->getWindowWidth();
+	mViewport.Height = (float)Application::instance()->getWindow()->getWindowHeight();
+	//	左上x座標
+	mViewport.TopLeftX = 0;
+	//	左上y座標
+	mViewport.TopLeftY = 0;
+	//	最大深度
+	mViewport.MaxDepth = 1.0f;
+	//	最低深度
+	mViewport.MinDepth = 0.0f;
+
+	//	シザー矩形初期化
+	mScissorRect.top = 0;
+	mScissorRect.bottom = mScissorRect.top + (LONG)Application::instance()->getWindow()->getWindowHeight();
+	mScissorRect.left = 0;
+	mScissorRect.right = mScissorRect.left + (LONG)Application::instance()->getWindow()->getWindowWidth();
+
 }
+
 void DirectXSystem::enableDebugLayer()
 {
 	ID3D12Debug* debugLayer = nullptr;

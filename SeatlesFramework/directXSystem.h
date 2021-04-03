@@ -58,6 +58,8 @@ namespace SeatlesFramework
 			Shape* mpTriangle;
 
 			int mBackBufferCount;
+			D3D12_VIEWPORT mViewport;
+			D3D12_RECT mScissorRect;
 		};
 	}
 }

@@ -54,14 +54,10 @@ Shape::Shape():
 	mpVertexBuffer->Unmap(0, nullptr);
 
 	//	頂点ビューの作成
-	D3D12_VERTEX_BUFFER_VIEW vertexBufferView = {};
-	vertexBufferView.BufferLocation = mpVertexBuffer->GetGPUVirtualAddress();
-	vertexBufferView.SizeInBytes = sizeof(mVertices);
-	vertexBufferView.StrideInBytes = sizeof(mVertices[0]);
-
-	//	頂点バッファービュー設定
-	auto commandList = DirectXSystem::instance()->getCommandList();
-	commandList->IASetVertexBuffers(0, 1, &vertexBufferView);
+	mVertexBufferView = {};
+	mVertexBufferView.BufferLocation = mpVertexBuffer->GetGPUVirtualAddress();
+	mVertexBufferView.SizeInBytes = sizeof(mVertices);
+	mVertexBufferView.StrideInBytes = sizeof(mVertices[0]);
 }
 
 Shape::~Shape()
