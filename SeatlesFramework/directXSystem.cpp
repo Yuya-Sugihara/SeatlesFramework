@@ -92,19 +92,8 @@ void DirectXSystem::update()
 	//	ルートシグネチャセット
 	mpCommandList->SetGraphicsRootSignature(mpRootSignature);
 
-	//	トポロジーセット
-	mpCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//	頂点バッファセット
-	mpCommandList->IASetVertexBuffers
-	(
-		0, //	スロット番号
-		1, //	登録するバッファ数
-		mpTriangle->getVertexBufferView() //	描画に使用する頂点バッファビュー
-	);
-
-	//	描画命令セット(頂点数、インスタンス数、頂点データのオフセット、インスタンスのオフセット)
-	mpCommandList->DrawInstanced(3, 1, 0, 0);
+	//	描画セット
+	mpTriangle->draw(mpCommandList);
 
 	barriorDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -175,7 +164,10 @@ void DirectXSystem::onInitialize()
 	createGraphicsPipelineState();
 
 	//	図形作成
-	mpTriangle = new Shape();
+	XMFLOAT3 vertex1 = { -0.5f, -0.7f, 0.0f };
+	XMFLOAT3 vertex2 = { -0.5f,  0.7f, 0.0f };
+	XMFLOAT3 vertex3 = {  0.5f, -0.7f, 0.0f };
+	mpTriangle = new Triangle(vertex1,vertex2,vertex3);
 }
 
 void DirectXSystem::onDestroy()

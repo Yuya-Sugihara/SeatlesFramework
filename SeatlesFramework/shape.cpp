@@ -9,12 +9,18 @@
 using namespace SeatlesFramework::render;
 
 Shape::Shape():
-	mpVertexBuffer(nullptr)
-{
-	mVertices[0] = { -1.0f, -1.0f, 0.0f };
-	mVertices[1] = { -1.0f,  1.0f, 0.0f };
-	mVertices[2] = {  1.0f, -1.0f, 0.0f };
+	mpVertexBuffer(nullptr),
+	mVertexBufferView{},
+	mVertices{}
+{}
 
+Shape::~Shape()
+{
+	SAFE_RELEASE(mpVertexBuffer);
+}
+
+void Shape::initialize()
+{
 	D3D12_HEAP_PROPERTIES heapProp = {};
 	//	mapする必要があるのでCPUからアクセスできるように
 	heapProp.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -25,7 +31,7 @@ Shape::Shape():
 
 	D3D12_RESOURCE_DESC resourceDesc = {};
 	resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-	resourceDesc.Width = sizeof(mVertices);
+	resourceDesc.Width = (int)(mVertices.size() * sizeof(mVertices[0]));
 	resourceDesc.Height = 1;
 	resourceDesc.DepthOrArraySize = 1;
 	resourceDesc.MipLevels = 1;
@@ -56,11 +62,38 @@ Shape::Shape():
 	//	頂点ビューの作成
 	mVertexBufferView = {};
 	mVertexBufferView.BufferLocation = mpVertexBuffer->GetGPUVirtualAddress();
-	mVertexBufferView.SizeInBytes = sizeof(mVertices);
+	mVertexBufferView.SizeInBytes = sizeof(mVertices[0]) * mVertices.size();
 	mVertexBufferView.StrideInBytes = sizeof(mVertices[0]);
 }
 
-Shape::~Shape()
+Triangle::Triangle(XMFLOAT3 pos1, XMFLOAT3 pos2, XMFLOAT3 pos3):
+	Shape()
 {
-	SAFE_RELEASE(mpVertexBuffer);
+	//	座標設定
+	mVertices = { pos1,pos2,pos3 };
+
+	initialize();
+}
+
+Triangle::~Triangle()
+{}
+
+void Triangle::initialize()
+{
+	Shape::initialize();
+}
+
+void Triangle::draw(ID3D12GraphicsCommandList* pCommandList)
+{
+	//	トポロジーセット
+	pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	pCommandList->IASetVertexBuffers
+	(
+		0, //	スロット番号
+		1, //	登録するバッファ数
+		&mVertexBufferView //	描画に使用する頂点バッファビュー
+	);
+
+	//	描画命令セット(頂点数、インスタンス数、頂点データのオフセット、インスタンスのオフセット)
+	pCommandList->DrawInstanced(mVertices.size(), 1, 0, 0);
 }
