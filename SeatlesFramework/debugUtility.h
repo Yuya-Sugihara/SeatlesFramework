@@ -1,5 +1,6 @@
 #pragma once
 
+#include"directX.h"
 #include <iostream>
 #include <Windows.h>
 
@@ -14,7 +15,10 @@ namespace SeatlesFramework
 		/// </summary>
 		void static traceLog(const char* format, ...);
 
-		//void static traceLog(const TCHAR* comment);
+		/// <summary>
+		/// エラーBlobに関するトレースを出力する
+		/// </summary>
+		void static traceErrorBlobLog(ID3D10Blob* errorBlob);
 	};
 
 #ifdef _DEBUG

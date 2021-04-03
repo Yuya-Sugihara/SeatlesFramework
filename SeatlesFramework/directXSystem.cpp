@@ -1,6 +1,7 @@
 #include "directXSystem.h"
 #include "application.h"
 #include "window.h"
+#include "shape.h"
 #include "assert.h"
 #include "debugUtility.h"
 
@@ -20,6 +21,9 @@ DirectXSystem::DirectXSystem():
 	mpCommandList(nullptr),
 	mpCommandQueue(nullptr),
 	mpRtvDescriptorHeap(nullptr),
+	mpPipelineState(nullptr),
+	mpRootSignature(nullptr),
+	mpTriangle(nullptr),
 	mBackBufferCount(2)
 {}
 
@@ -31,6 +35,9 @@ DirectXSystem::DirectXSystem(const DirectXSystem&) :
 	mpCommandList(nullptr),
 	mpCommandQueue(nullptr),
 	mpRtvDescriptorHeap(nullptr),
+	mpPipelineState(nullptr),
+	mpRootSignature(nullptr),
+	mpTriangle(nullptr),
 	mBackBufferCount(2)
 {}
 
@@ -134,11 +141,20 @@ void DirectXSystem::onInitialize()
 	
 	//	レンダーターゲットビュー作成
 	createRenderTargetView();
+
+	//	グラフィックスパイプラインステート作成
+	createGraphicsPipelineState();
+
+	//	図形作成
+	mpTriangle = new Shape();
 }
 
 void DirectXSystem::onDestroy()
 {
+	SAFE_DELETE(mpTriangle);
 	//	create〇〇の場合はSAFE_RELEASE
+	SAFE_RELEASE(mpRootSignature);
+	SAFE_RELEASE(mpPipelineState);
 	SAFE_RELEASE(mpRtvDescriptorHeap);
 	SAFE_RELEASE(mpCommandQueue);
 	SAFE_RELEASE(mpCommandList);
@@ -271,11 +287,7 @@ void DirectXSystem::createRenderTargetView()
 	heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
 
 	//	作成
-	HRESULT result = mpDevice->CreateDescriptorHeap
-	(
-		&heapDesc,
-		IID_PPV_ARGS(&mpRtvDescriptorHeap)
-	);
+	HRESULT result = mpDevice->CreateDescriptorHeap(&heapDesc,IID_PPV_ARGS(&mpRtvDescriptorHeap));
 	throwAssertIfFailed(result, "レンダーターゲットビューのためのディスクリプターヒープの作成に失敗しました。");
 
 	//	スワップチェーンと紐づけ
@@ -300,6 +312,131 @@ void DirectXSystem::createRenderTargetView()
 	backBuffers.clear();
 }
 
+void DirectXSystem::createGraphicsPipelineState()
+{
+	//	シェーダー読み込み
+	ID3DBlob* vsBlob = nullptr;
+	ID3DBlob* psBlob = nullptr;
+	ID3DBlob* errorBlob = nullptr;
+
+	//	頂点シェーダー
+	auto result = D3DCompileFromFile
+	(
+		L"VertexShader.hlsl", //	シェーダーファイル名
+		nullptr, //		シェーダーマクロオブジェクト
+		D3D_COMPILE_STANDARD_FILE_INCLUDE, //	カレントディレクトリからインクルードファイルを検索
+		"vertexShader", //		エントリポイント
+		"vs_5_0",//		シェーダーのバージョン
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, //		シェーダーコンパイルオプション
+		0, //	シェーダーコンパイルオプション2
+		&vsBlob, //		受け取るBlobオブジェクト
+		&errorBlob //	受け取るエラー通知オブジェクト
+	);
+	throwAssertIfFailed(result, "頂点シェーダーの読み込みに失敗しました。");
+
+	//	ピクセルシェーダー
+	result = D3DCompileFromFile
+	(
+		L"PixelShader.hlsl",
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"pixelShader",
+		"ps_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0,
+		&psBlob,
+		&errorBlob
+	);
+	throwAssertIfFailed(result, "ピクセルシェーダーの読み込みに失敗しました。");
+
+	D3D12_INPUT_ELEMENT_DESC inputLayouts[] =
+	{
+		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}
+	};
+	
+	//	グラフィックスパイプライン作成
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC pipeLineDesc = {};
+
+	//	ルートシグネチャ作成（GPUで使用するパラメータの型と並びを規定するもの）
+	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
+	//	頂点情報（入力アセンブラ）がある
+	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+	ID3DBlob* rootSignatureBlob = nullptr;
+	result = D3D12SerializeRootSignature
+	(
+		&rootSignatureDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1_0,
+		&rootSignatureBlob,
+		&errorBlob
+	);
+	throwAssertIfFailed(result, "ルートシグネチャBlobの作成に失敗しました。");
+	
+	result = mpDevice->CreateRootSignature
+	(
+		0,
+		rootSignatureBlob->GetBufferPointer(),
+		rootSignatureBlob->GetBufferSize(),
+		IID_PPV_ARGS(&mpRootSignature)
+	);
+	throwAssertIfFailed(result, "ルートシグネチャの作成に失敗しました。");
+	SAFE_RELEASE(rootSignatureBlob);
+
+	//	ルートシグネチャセット
+	pipeLineDesc.pRootSignature = mpRootSignature;
+
+	//	シェーダー
+	pipeLineDesc.VS.pShaderBytecode = vsBlob->GetBufferPointer();
+	pipeLineDesc.VS.BytecodeLength = vsBlob->GetBufferSize();
+	pipeLineDesc.PS.pShaderBytecode = psBlob->GetBufferPointer();
+	pipeLineDesc.PS.BytecodeLength = psBlob->GetBufferSize();
+
+	//	ラスタライザー設定
+	//	サンプルマスク
+	pipeLineDesc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
+	//	アンチエイリアス
+	pipeLineDesc.RasterizerState.MultisampleEnable = false;
+	//	カリング
+	pipeLineDesc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+	//	塗りつぶし
+	pipeLineDesc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
+	//	深度
+	pipeLineDesc.RasterizerState.DepthClipEnable = true;
+	
+	//	ブレンディング設定
+	//	アルファブレンディング
+	pipeLineDesc.BlendState.AlphaToCoverageEnable = false;
+	//	ブレンドステートをRenderTarget[0]に固定
+	pipeLineDesc.BlendState.IndependentBlendEnable = false;
+
+	D3D12_RENDER_TARGET_BLEND_DESC renderTargetBlendDesc = {};
+	//	ブレンド演算をするか
+	renderTargetBlendDesc.BlendEnable = false;
+	//	論理演算をするか
+	renderTargetBlendDesc.LogicOpEnable = false; 
+	//	Red,Green,Blue,Alphaすべてブレンド対象にする
+	renderTargetBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
+	pipeLineDesc.BlendState.RenderTarget[0] = renderTargetBlendDesc;
+
+	//	入力レイアウト設定
+	pipeLineDesc.InputLayout.pInputElementDescs = inputLayouts;
+	pipeLineDesc.InputLayout.NumElements = _countof(inputLayouts);
+
+	//	トポロジー設定
+	pipeLineDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED;
+	pipeLineDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+	//	レンダーターゲット設定
+	pipeLineDesc.NumRenderTargets = 1;
+	pipeLineDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+
+	//	アンチエイリアシング
+	pipeLineDesc.SampleDesc.Count = 1;
+	pipeLineDesc.SampleDesc.Quality = 0;
+
+	//	グラフィックスパイプラインステート作成
+	result = mpDevice->CreateGraphicsPipelineState(&pipeLineDesc, IID_PPV_ARGS(&mpPipelineState));
+}
 void DirectXSystem::enableDebugLayer()
 {
 	ID3D12Debug* debugLayer = nullptr;

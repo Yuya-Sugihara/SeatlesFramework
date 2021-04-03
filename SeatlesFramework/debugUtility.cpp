@@ -10,7 +10,6 @@
 #include <Windows.h>
 
 using namespace SeatlesFramework;
-using namespace std;
 
 void Trace::traceLog(const char* format, ...)
 {
@@ -26,14 +25,24 @@ void Trace::traceLog(const char* format, ...)
 #endif
 }
 
-//void Trace::traceLog(const TCHAR* comment)
-//{
-//#if _DEBUG
-//
-//	OutputDebugString(comment);
-//
-//#endif
-//}
+void Trace::traceErrorBlobLog(ID3DBlob* errorBlob)
+{
+#if _DEBUG
+	if (errorBlob == nullptr)
+		return;
+
+	std::string errorStr;
+	errorStr.resize(errorBlob->GetBufferSize());
+	std::copy_n
+	( 
+		(char*)errorBlob->GetBufferPointer(),
+		errorBlob->GetBufferSize(),
+		errorStr.begin()
+	);
+
+	traceLog(errorStr.c_str());
+#endif
+}
 
 /// <summary>
 /// メモリリークに関するダンプを出力する

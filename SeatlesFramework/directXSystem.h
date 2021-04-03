@@ -1,12 +1,7 @@
 #pragma once
 
 #include "singletonBase.h"
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <wrl.h>
-
-#pragma comment(lib,"d3d12.lib")
-#pragma comment(lib,"dxgi.lib")
+#include "directX.h"
 
 using namespace Microsoft::WRL;
 
@@ -14,6 +9,8 @@ namespace SeatlesFramework
 {
 	namespace render
 	{
+		class Shape;
+
 		/// <summary>
 		/// directxのシステムクラス、directx本体の処理を管理する
 		/// </summary>
@@ -24,6 +21,9 @@ namespace SeatlesFramework
 
 			void update();
 
+			//	アクセサ
+			ID3D12Device* getDevice() const { return mpDevice; }
+			ID3D12GraphicsCommandList* getCommandList() const { return mpCommandList; }
 		protected:
 			DirectXSystem();
 			DirectXSystem(const DirectXSystem&);
@@ -38,7 +38,8 @@ namespace SeatlesFramework
 			void createCommandDevices();
 			void createSwapChain();
 			void createRenderTargetView();
-			
+			void createGraphicsPipelineState();
+
 #if _DEBUG
 			void enableDebugLayer();
 #endif
@@ -51,6 +52,10 @@ namespace SeatlesFramework
 			ID3D12GraphicsCommandList* mpCommandList;
 			ID3D12CommandQueue* mpCommandQueue;
 			ID3D12DescriptorHeap* mpRtvDescriptorHeap;
+			ID3D12PipelineState* mpPipelineState;
+			ID3D12RootSignature* mpRootSignature;
+
+			Shape* mpTriangle;
 
 			int mBackBufferCount;
 		};
