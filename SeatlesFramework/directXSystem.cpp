@@ -23,7 +23,7 @@ DirectXSystem::DirectXSystem():
 	mpRtvDescriptorHeap(nullptr),
 	mpPipelineState(nullptr),
 	mpRootSignature(nullptr),
-	mpTriangle(nullptr),
+	mpShape(nullptr),
 	mViewport{},
 	mScissorRect{},
 	mBackBufferCount(2)
@@ -39,7 +39,7 @@ DirectXSystem::DirectXSystem(const DirectXSystem&) :
 	mpRtvDescriptorHeap(nullptr),
 	mpPipelineState(nullptr),
 	mpRootSignature(nullptr),
-	mpTriangle(nullptr),
+	mpShape(nullptr),
 	mViewport{},
 	mScissorRect{},
 	mBackBufferCount(2)
@@ -93,7 +93,7 @@ void DirectXSystem::update()
 	mpCommandList->SetGraphicsRootSignature(mpRootSignature);
 
 	//	ï`âÊÉZÉbÉg
-	mpTriangle->draw(mpCommandList);
+	mpShape->draw(mpCommandList);
 
 	barriorDesc.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
 	barriorDesc.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
@@ -164,15 +164,17 @@ void DirectXSystem::onInitialize()
 	createGraphicsPipelineState();
 
 	//	ê}å`çÏê¨
-	XMFLOAT3 vertex1 = { -0.5f, -0.7f, 0.0f };
-	XMFLOAT3 vertex2 = { -0.5f,  0.7f, 0.0f };
-	XMFLOAT3 vertex3 = {  0.5f, -0.7f, 0.0f };
-	mpTriangle = new Triangle(vertex1,vertex2,vertex3);
+	XMFLOAT3 vertex1 = { -0.4f, -0.7f, 0.0f };
+	XMFLOAT3 vertex2 = { -0.4f,  0.7f, 0.0f };
+	XMFLOAT3 vertex3 = {  0.4f, -0.7f, 0.0f };
+	XMFLOAT3 vertex4 = {  0.4f,  0.7f, 0.0f };
+	mpShape = new Rectangle(vertex1,vertex2,vertex3, vertex4);
+	//mpShape = new Triangle(vertex1, vertex2, vertex3);
 }
 
 void DirectXSystem::onDestroy()
 {
-	SAFE_DELETE(mpTriangle);
+	SAFE_DELETE(mpShape);
 	//	createÅZÅZÇÃèÍçáÇÕSAFE_RELEASE
 	SAFE_RELEASE(mpRootSignature);
 	SAFE_RELEASE(mpPipelineState);

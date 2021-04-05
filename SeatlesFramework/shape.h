@@ -26,14 +26,31 @@ namespace SeatlesFramework
 		private:
 		};
 
-		class Triangle :public Shape
+		class Triangle: public Shape
 		{
 		public:
 			Triangle(XMFLOAT3 pos1, XMFLOAT3 pos2, XMFLOAT3 pos3);
 			virtual ~Triangle();
 
-			void initialize() override;
 			void draw(ID3D12GraphicsCommandList* pCommandList) override;
+		protected:
+			void initialize() override;
+		};
+
+		class Rectangle : public Shape
+		{
+		public:
+			Rectangle(XMFLOAT3 pos1, XMFLOAT3 pos2, XMFLOAT3 pos3, XMFLOAT3 pos4);
+			virtual ~Rectangle();
+
+			void draw(ID3D12GraphicsCommandList* pCommandList) override;
+		protected: 
+			void initialize() override;
+
+		private: 
+			ID3D12Resource* mpIndexBuffer;
+			D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
+			unsigned short mIndices[6];
 		};
 	}
 }

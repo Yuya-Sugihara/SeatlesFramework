@@ -55,7 +55,7 @@ namespace SeatlesFramework
 			ID3D12PipelineState* mpPipelineState;
 			ID3D12RootSignature* mpRootSignature;
 
-			Shape* mpTriangle;
+			Shape* mpShape;
 
 			int mBackBufferCount;
 			D3D12_VIEWPORT mViewport;
