@@ -55,13 +55,13 @@ void Shape::initialize()
 	throwAssertIfFailed(result, "頂点バッファーの作成に失敗しました。");
 
 	//	マップ
-	XMFLOAT3* vertMap = nullptr;
+	Vertex* vertMap = nullptr;
 	result = mpVertexBuffer->Map(0, nullptr, (void**)&vertMap);
 	std::copy(std::begin(mVertices), std::end(mVertices), vertMap);
 	mpVertexBuffer->Unmap(0, nullptr);
 	for (UINT i = 0; i < mVertices.size(); i++)
 	{
-		Trace::traceLog("頂点: (%f,%f,%f)",vertMap[i].x, vertMap[i].y, vertMap[i].z);
+		Trace::traceLog("頂点: (%f,%f,%f)",vertMap[i].pos.x, vertMap[i].pos.y, vertMap[i].pos.z);
 	}
 
 	//	頂点ビューの作成
@@ -71,11 +71,11 @@ void Shape::initialize()
 	mVertexBufferView.StrideInBytes = sizeof(mVertices[0]);
 }
 
-Triangle::Triangle(XMFLOAT3 pos1, XMFLOAT3 pos2, XMFLOAT3 pos3):
+Triangle::Triangle(Vertex vertex1, Vertex vertex2, Vertex vertex3):
 	Shape()
 {
 	//	座標設定
-	mVertices = { pos1,pos2,pos3 };
+	mVertices = { vertex1,vertex2,vertex3 };
 
 	initialize();
 }
@@ -98,15 +98,14 @@ void Triangle::draw(ID3D12GraphicsCommandList* pCommandList)
 	pCommandList->DrawInstanced(mVertices.size(), 1, 0, 0);
 }
 
-Rectangle::Rectangle(XMFLOAT3 pos1, XMFLOAT3 pos2, XMFLOAT3 pos3, XMFLOAT3 pos4):
+Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vertex4):
 	Shape(),
 	mpIndexBuffer(nullptr),
 	mIndexBufferView{},
 	mIndices{ 0, 1, 2, 2, 1, 3 }
 {
 	//	座標設定
-	//mVertices.resize(4);
-	mVertices = { pos1,pos2,pos3,pos4 };
+	mVertices = { vertex1,vertex2,vertex3,vertex4 };
 
 	initialize();
 }

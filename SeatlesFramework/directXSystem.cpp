@@ -164,10 +164,10 @@ void DirectXSystem::onInitialize()
 	createGraphicsPipelineState();
 
 	//	ê}å`çÏê¨
-	XMFLOAT3 vertex1 = { -0.4f, -0.7f, 0.0f };
-	XMFLOAT3 vertex2 = { -0.4f,  0.7f, 0.0f };
-	XMFLOAT3 vertex3 = {  0.4f, -0.7f, 0.0f };
-	XMFLOAT3 vertex4 = {  0.4f,  0.7f, 0.0f };
+	Vertex vertex1 = { {-0.4f, -0.7f, 0.0f}, {0.0f, 1.0f} };
+	Vertex vertex2 = { {-0.4f,  0.7f, 0.0f}, {0.0f, 0.0f} };
+	Vertex vertex3 = { { 0.4f, -0.7f, 0.0f}, {1.0f, 1.0f} };
+	Vertex vertex4 = { { 0.4f,  0.7f, 0.0f}, {1.0f, 0.0f} };
 	mpShape = new Rectangle(vertex1,vertex2,vertex3, vertex4);
 	//mpShape = new Triangle(vertex1, vertex2, vertex3);
 }
