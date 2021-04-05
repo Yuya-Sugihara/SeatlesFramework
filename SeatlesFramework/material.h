@@ -1,8 +1,10 @@
 #pragma once
 
 #include"directX.h"
+#include <vector>
 
 using namespace DirectX;
+using namespace std;
 
 namespace SeatlesFramework
 {
@@ -25,6 +27,32 @@ namespace SeatlesFramework
 				pos(_x), 
 				uv(_y)
 			{}
+		};
+
+		class Texture
+		{
+		public:
+			struct TexRGBA
+			{
+				unsigned char r;
+				unsigned char g;
+				unsigned char b;
+				unsigned char a;
+			};
+
+			Texture();
+			~Texture();
+
+			//	ランダムなテクスチャーデータをセットする
+			void setRandomTexture();
+			ID3D12DescriptorHeap* getDescriptorHeap()const { return mpDescriptorHeap; }
+		private:
+			int mTextureWidth;
+			int mTextureHeight;
+
+			vector<TexRGBA> mTextureData;
+			ID3D12Resource* mpTextureBuffer;
+			ID3D12DescriptorHeap* mpDescriptorHeap;
 		};
 	}
 }

@@ -12,6 +12,8 @@ namespace SeatlesFramework
 {
 	namespace render
 	{
+		class Texture;
+
 		class Shape
 		{
 		public:
@@ -49,6 +51,7 @@ namespace SeatlesFramework
 			void initialize() override;
 
 		private: 
+			Texture* mpTexture;
 			ID3D12Resource* mpIndexBuffer;
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
 			unsigned short mIndices[6];

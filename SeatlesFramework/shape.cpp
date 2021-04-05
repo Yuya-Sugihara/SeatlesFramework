@@ -3,6 +3,7 @@
 #include "assert.h"
 #include "directX.h"
 #include "debugUtility.h"
+#include "material.h"
 
 #include <iostream>
 
@@ -100,12 +101,14 @@ void Triangle::draw(ID3D12GraphicsCommandList* pCommandList)
 
 Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vertex4):
 	Shape(),
+	mpTexture(nullptr),
 	mpIndexBuffer(nullptr),
 	mIndexBufferView{},
 	mIndices{ 0, 1, 2, 2, 1, 3 }
 {
 	//	座標設定
 	mVertices = { vertex1,vertex2,vertex3,vertex4 };
+	mpTexture = new Texture();
 
 	initialize();
 }
@@ -113,6 +116,7 @@ Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vert
 Rectangle::~Rectangle()
 {
 	SAFE_RELEASE(mpIndexBuffer);
+	SAFE_DELETE(mpTexture);
 }
 
 void Rectangle::initialize()
@@ -166,6 +170,10 @@ void Rectangle::initialize()
 
 void Rectangle::draw(ID3D12GraphicsCommandList* pCommandList)
 {
+	//	テクスチャセット
+	auto descHeap = mpTexture->getDescriptorHeap();
+	pCommandList->SetDescriptorHeaps(1, &descHeap);
+	pCommandList->SetGraphicsRootDescriptorTable(0, descHeap->GetGPUDescriptorHandleForHeapStart());
 	//	トポロジーセット
 	pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	//pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);

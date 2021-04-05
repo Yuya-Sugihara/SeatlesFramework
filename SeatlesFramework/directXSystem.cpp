@@ -377,15 +377,59 @@ void DirectXSystem::createGraphicsPipelineState()
 		{"POSITION",0,DXGI_FORMAT_R32G32B32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0}, //	座標
 		{"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0} //	uv
 	};
-	
-	//	グラフィックスパイプライン作成
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC pipeLineDesc = {};
+
+	//	ディスクリプターレンジ作成
+	D3D12_DESCRIPTOR_RANGE descTableDesc = {};
+	//	テクスチャ1つ
+	descTableDesc.NumDescriptors = 1;
+	//	テクスチャ
+	descTableDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	//	０番スロットから使用する
+	descTableDesc.BaseShaderRegister = 0;
+	//	連続で配置
+	descTableDesc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+	//	ルートパラメータ作成
+	D3D12_ROOT_PARAMETER rootParam = {};
+	//	ディスクリプターテーブル
+	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	//	 ピクセルシェーダーから見える
+	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	//	ディスクリプターテーブル設定
+	rootParam.DescriptorTable.pDescriptorRanges = &descTableDesc;
+	rootParam.DescriptorTable.NumDescriptorRanges = 1;
 
 	//	ルートシグネチャ作成（GPUで使用するパラメータの型と並びを規定するもの）
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 	//	頂点情報（入力アセンブラ）がある
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+	//	ルートパラメーター設定
+	rootSignatureDesc.pParameters = &rootParam;
+	rootSignatureDesc.NumParameters = 1;
+	
+	//	サンプラー(テクスチャーデータからどう色を取り出すか)の設定
+	D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
+	//	各方向繰り返し
+	samplerDesc.AddressU = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.AddressV = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.AddressW = D3D12_TEXTURE_ADDRESS_MODE_WRAP;
+	samplerDesc.BorderColor = D3D12_STATIC_BORDER_COLOR_TRANSPARENT_BLACK;
+	//	線形補間
+	samplerDesc.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
+	//	ミップマップ最大値
+	samplerDesc.MaxLOD = D3D12_FLOAT32_MAX;
+	//	ミップマップ最小値値
+	samplerDesc.MinLOD = 0.0f;
+	//	ピクセルシェーダーから見える
+	samplerDesc.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	//	リサンプリングしない
+	samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_NEVER;
 
+	//	サンプラー設定
+	rootSignatureDesc.pStaticSamplers = &samplerDesc;
+	rootSignatureDesc.NumStaticSamplers = 1;
+
+	//	ルートシグネチャのBlob作成
 	ID3DBlob* rootSignatureBlob = nullptr;
 	result = D3D12SerializeRootSignature
 	(
@@ -405,6 +449,9 @@ void DirectXSystem::createGraphicsPipelineState()
 	);
 	throwAssertIfFailed(result, "ルートシグネチャの作成に失敗しました。");
 	SAFE_RELEASE(rootSignatureBlob);
+
+	//	グラフィックスパイプライン作成
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC pipeLineDesc = {};
 
 	//	ルートシグネチャセット
 	pipeLineDesc.pRootSignature = mpRootSignature;
