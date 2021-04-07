@@ -8,7 +8,7 @@
 #include <iostream>
 
 
-using namespace SeatlesFramework::render;
+using namespace seatlesFramework::render;
 
 Shape::Shape():
 	mpVertexBuffer(nullptr),
@@ -176,20 +176,15 @@ void Rectangle::draw(ID3D12GraphicsCommandList* pCommandList)
 	auto descHeap = mpTexture->getDescriptorHeap();
 	pCommandList->SetDescriptorHeaps(1, &descHeap);
 	pCommandList->SetGraphicsRootDescriptorTable(0, descHeap->GetGPUDescriptorHandleForHeapStart());
+	
 	//	トポロジーセット
 	pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	//pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	
 	//	頂点バッファセット（スロット番号、登録するバッファ数、描画に使用する頂点バッファビュー）
 	pCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
 	//	インデックスバッファセット
 	pCommandList->IASetIndexBuffer(&mIndexBufferView);
 
-	//	描画命令セット(頂点数、インスタンス数、頂点データのオフセット、インスタンスのオフセット)
-	//pCommandList->DrawInstanced(4, 1, 0, 0);
-	//pCommandList->DrawInstanced(mVertices.size(), 1, 0, 0);
-	//pCommandList->DrawIndexedInstanced(_countof(mIndices), 1, 0, 0, 0);
-	pCommandList->DrawIndexedInstanced(6, 1, 0, 0, 0);
-
-	//	インデックスバッファーにして四角形が描画されなくなった
+	//	描画命令セット
+	pCommandList->DrawIndexedInstanced(_countof(mIndices), 1, 0, 0, 0);
 }

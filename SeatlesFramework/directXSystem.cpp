@@ -9,7 +9,7 @@
 #include <comdef.h>
 #include <vector>
 
-using namespace SeatlesFramework;
+using namespace seatlesFramework;
 using namespace render;
 using namespace std;
 

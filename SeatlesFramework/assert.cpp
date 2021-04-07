@@ -4,7 +4,7 @@
 #include <cassert>
 #include <stdio.h>
 
-void SeatlesFramework::throwAssertIfFailed(HRESULT result, const char* comment)
+void seatlesFramework::throwAssertIfFailed(HRESULT result, const char* comment)
 {
 	if (SUCCEEDED(result))
 		return;

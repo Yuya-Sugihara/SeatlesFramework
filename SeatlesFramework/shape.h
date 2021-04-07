@@ -5,10 +5,9 @@
 
 #include <vector>
 
-using namespace DirectX;
 using namespace std;
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	namespace render
 	{

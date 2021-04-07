@@ -5,7 +5,7 @@
 
 using namespace Microsoft::WRL;
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	namespace render
 	{

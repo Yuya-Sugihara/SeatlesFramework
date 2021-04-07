@@ -5,7 +5,7 @@
 
 #include <tchar.h>
 
-using namespace SeatlesFramework;
+using namespace seatlesFramework;
 
 int Application::mMainWindowWidth = 720;
 int Application::mMainWindowHeight = 480;

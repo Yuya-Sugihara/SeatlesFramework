@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	/// <summary>
 	/// window‚ÉŠÖ‚·‚éƒNƒ‰ƒX

@@ -2,7 +2,7 @@
 #include "directXSystem.h"
 #include "assert.h"
 
-using namespace SeatlesFramework;
+using namespace seatlesFramework;
 using namespace render;
 
 Texture::Texture():

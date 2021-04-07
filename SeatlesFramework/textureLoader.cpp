@@ -1,9 +1,8 @@
 #include "textureLoader.h"
 #include "assert.h"
 
-using namespace SeatlesFramework;
+using namespace seatlesFramework;
 using namespace render;
-using namespace DirectX;
 
 //ScratchImage& TextureLoader::load(const wchar_t* fileName)
 //{

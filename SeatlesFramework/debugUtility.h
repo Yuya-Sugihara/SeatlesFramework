@@ -4,7 +4,7 @@
 #include <iostream>
 #include <Windows.h>
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	class Trace
 	{

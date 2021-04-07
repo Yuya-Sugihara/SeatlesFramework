@@ -9,7 +9,7 @@
 #include <string>
 #include <Windows.h>
 
-using namespace SeatlesFramework;
+using namespace seatlesFramework;
 
 void Trace::traceLog(const char* format, ...)
 {
@@ -47,7 +47,7 @@ void Trace::traceErrorBlobLog(ID3DBlob* errorBlob)
 /// <summary>
 /// メモリリークに関するダンプを出力する
 /// </summary>
-void SeatlesFramework::dumpMemoryLeakReport()
+void seatlesFramework::dumpMemoryLeakReport()
 {
 	_CrtDumpMemoryLeaks();
 }

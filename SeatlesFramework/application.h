@@ -2,7 +2,7 @@
 
 #include "singletonBase.h"
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	namespace render
 	{

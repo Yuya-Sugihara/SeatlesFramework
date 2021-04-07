@@ -1,7 +1,7 @@
 #pragma once
 #include "utility.h"
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	/// <summary>
 	/// シングルトンクラスの基底テンプレート

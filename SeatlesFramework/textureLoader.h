@@ -2,7 +2,7 @@
 #include <Windows.h>
 #include "directX.h"
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	namespace render
 	{

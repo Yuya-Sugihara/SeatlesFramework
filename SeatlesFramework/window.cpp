@@ -2,7 +2,7 @@
 
 #include <tchar.h>
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 	/// <summary>
 	/// コンストラクタ

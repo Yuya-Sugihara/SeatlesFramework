@@ -1,6 +1,6 @@
 #pragma once
 
-namespace SeatlesFramework
+namespace seatlesFramework
 {
 
 #define SAFE_DELETE(p) { if(p != nullptr) { delete (p); p = nullptr; } }

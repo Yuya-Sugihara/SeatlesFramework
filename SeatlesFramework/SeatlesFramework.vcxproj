@@ -146,10 +146,11 @@
     <ClCompile Include="debugUtility.cpp" />
     <ClCompile Include="directXSystem.cpp" />
     <ClCompile Include="material.cpp" />
-    <ClCompile Include="SeatlesFramework.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="singletonBase.cpp" />
     <ClCompile Include="shape.cpp" />
     <ClCompile Include="textureLoader.cpp" />
+    <ClCompile Include="transform.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -162,6 +163,7 @@
     <ClInclude Include="singletonBase.h" />
     <ClInclude Include="shape.h" />
     <ClInclude Include="textureLoader.h" />
+    <ClInclude Include="transform.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
