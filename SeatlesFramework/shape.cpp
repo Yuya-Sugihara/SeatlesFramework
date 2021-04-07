@@ -4,9 +4,9 @@
 #include "directX.h"
 #include "debugUtility.h"
 #include "material.h"
+#include "transform.h"
 
 #include <iostream>
-
 
 using namespace seatlesFramework::render;
 
@@ -102,6 +102,7 @@ void Triangle::draw(ID3D12GraphicsCommandList* pCommandList)
 Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vertex4):
 	Shape(),
 	mpTexture(nullptr),
+	mpTransform(nullptr),
 	mpIndexBuffer(nullptr),
 	mIndexBufferView{},
 	mIndices{ 0, 1, 2, 2, 1, 3 }
@@ -112,6 +113,10 @@ Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vert
 	//mpTexture = new RandomTexture();
 	mpTexture->setup();
 
+	//	コンポーネント初期化
+	mpTransform = new Transform();
+	mpTransform->awake();
+
 	initialize();
 }
 
@@ -119,6 +124,7 @@ Rectangle::~Rectangle()
 {
 	SAFE_RELEASE(mpIndexBuffer);
 	SAFE_DELETE(mpTexture);
+	SAFE_DELETE(mpTransform);
 }
 
 void Rectangle::initialize()
@@ -168,23 +174,36 @@ void Rectangle::initialize()
 	mIndexBufferView.BufferLocation = mpIndexBuffer->GetGPUVirtualAddress();
 	mIndexBufferView.Format = DXGI_FORMAT_R16_UINT;
 	mIndexBufferView.SizeInBytes = sizeof(mIndices);
+
 }
 
 void Rectangle::draw(ID3D12GraphicsCommandList* pCommandList)
 {
+	//// 座標変換
+	auto pTransformHeap = mpTransform->getDescriptorHeap();
+	pCommandList->SetDescriptorHeaps(1,&pTransformHeap);
+	pCommandList->SetGraphicsRootDescriptorTable
+	(
+		DirectXSystem::RootParamType::Constant,
+		pTransformHeap->GetGPUDescriptorHandleForHeapStart()
+	);
+
 	//	テクスチャセット
 	auto descHeap = mpTexture->getDescriptorHeap();
 	pCommandList->SetDescriptorHeaps(1, &descHeap);
-	pCommandList->SetGraphicsRootDescriptorTable(0, descHeap->GetGPUDescriptorHandleForHeapStart());
-	
+	pCommandList->SetGraphicsRootDescriptorTable
+	(
+		DirectXSystem::RootParamType::Texture, 
+		descHeap->GetGPUDescriptorHandleForHeapStart()
+	);
+
 	//	トポロジーセット
 	pCommandList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-	
 	//	頂点バッファセット（スロット番号、登録するバッファ数、描画に使用する頂点バッファビュー）
 	pCommandList->IASetVertexBuffers(0, 1, &mVertexBufferView);
 	//	インデックスバッファセット
 	pCommandList->IASetIndexBuffer(&mIndexBufferView);
-
+	
 	//	描画命令セット
 	pCommandList->DrawIndexedInstanced(_countof(mIndices), 1, 0, 0, 0);
 }

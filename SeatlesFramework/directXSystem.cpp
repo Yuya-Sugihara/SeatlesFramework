@@ -378,35 +378,69 @@ void DirectXSystem::createGraphicsPipelineState()
 		{"TEXCOORD",0,DXGI_FORMAT_R32G32_FLOAT,0,D3D12_APPEND_ALIGNED_ELEMENT,D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,0} //	uv
 	};
 
+
+	//D3D12_DESCRIPTOR_RANGE descTableRange = {};
+	//descTableRange.NumDescriptors = 1;
+	//descTableRange.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV; //	テクスチャ
+	//descTableRange.BaseShaderRegister = 0;//	0番レジスターから
+	//descTableRange.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;//	連続で配置
+	 
 	//	ディスクリプターレンジ作成
-	D3D12_DESCRIPTOR_RANGE descTableDesc = {};
-	//	テクスチャ1つ
-	descTableDesc.NumDescriptors = 1;
-	//	テクスチャ
-	descTableDesc.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-	//	０番スロットから使用する
-	descTableDesc.BaseShaderRegister = 0;
-	//	連続で配置
-	descTableDesc.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
-
+	D3D12_DESCRIPTOR_RANGE descTableDesc[RootParamType::Count] = {};
+	//	テクスチャ用
+	descTableDesc[RootParamType::Texture].NumDescriptors = 1;
+	descTableDesc[RootParamType::Texture].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+	descTableDesc[RootParamType::Texture].BaseShaderRegister = 0;
+	descTableDesc[RootParamType::Texture].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	
+	//	定数用
+	descTableDesc[RootParamType::Constant].NumDescriptors = 1;
+	descTableDesc[RootParamType::Constant].RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+	descTableDesc[RootParamType::Constant].BaseShaderRegister = 0;
+	descTableDesc[RootParamType::Constant].OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+	
 	//	ルートパラメータ作成
-	D3D12_ROOT_PARAMETER rootParam = {};
-	//	ディスクリプターテーブル
-	rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
-	//	 ピクセルシェーダーから見える
-	rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
-	//	ディスクリプターテーブル設定
-	rootParam.DescriptorTable.pDescriptorRanges = &descTableDesc;
-	rootParam.DescriptorTable.NumDescriptorRanges = 1;
+	D3D12_ROOT_PARAMETER rootParams[RootParamType::Count] = {};
+	
+	//	テクスチャ用
+	rootParams[RootParamType::Texture].ParameterType
+		= D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	rootParams[RootParamType::Texture].ShaderVisibility 
+		= D3D12_SHADER_VISIBILITY_PIXEL;
+	rootParams[RootParamType::Texture].DescriptorTable.pDescriptorRanges
+		= &descTableDesc[RootParamType::Texture];
+	rootParams[RootParamType::Texture].DescriptorTable.NumDescriptorRanges
+		= 1;
+	
+	//	定数用
+	rootParams[RootParamType::Constant].ParameterType
+		= D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	//	 頂点シェーダーから見える
+	rootParams[RootParamType::Constant].ShaderVisibility
+		= D3D12_SHADER_VISIBILITY_VERTEX;
+	rootParams[RootParamType::Constant].DescriptorTable.pDescriptorRanges
+		= &descTableDesc[RootParamType::Constant];
+	rootParams[RootParamType::Constant].DescriptorTable.NumDescriptorRanges
+		= 1;
 
+    ////	ルートパラメータ作成
+	//D3D12_ROOT_PARAMETER rootParam = {};
+	//rootParam.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+	//rootParam.ShaderVisibility = D3D12_SHADER_VISIBILITY_PIXEL;
+	//rootParam.DescriptorTable.pDescriptorRanges = &descTableRange;
+	//rootParam.DescriptorTable.NumDescriptorRanges = 1;
+	 
 	//	ルートシグネチャ作成（GPUで使用するパラメータの型と並びを規定するもの）
 	D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
 	//	頂点情報（入力アセンブラ）がある
 	rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 	//	ルートパラメーター設定
-	rootSignatureDesc.pParameters = &rootParam;
-	rootSignatureDesc.NumParameters = 1;
-	
+	rootSignatureDesc.pParameters = rootParams;
+	rootSignatureDesc.NumParameters = RootParamType::Count;
+	//rootSignatureDesc.pParameters = &rootParam;
+	//rootSignatureDesc.NumParameters = 1;
+
+
 	//	サンプラー(テクスチャーデータからどう色を取り出すか)の設定
 	D3D12_STATIC_SAMPLER_DESC samplerDesc = {};
 	//	各方向繰り返し

@@ -9,10 +9,12 @@ using namespace std;
 
 namespace seatlesFramework
 {
+	class Transform;
+
 	namespace render
 	{
 		class RandomTexture;
-		class ImageTexture;
+		class ImageTexture;	
 
 		class Shape
 		{
@@ -52,6 +54,7 @@ namespace seatlesFramework
 
 		private: 
 			Texture* mpTexture;
+			Transform* mpTransform;
 			ID3D12Resource* mpIndexBuffer;
 			D3D12_INDEX_BUFFER_VIEW mIndexBufferView;
 			unsigned short mIndices[6];

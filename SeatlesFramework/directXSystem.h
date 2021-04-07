@@ -17,6 +17,16 @@ namespace seatlesFramework
 		class DirectXSystem :public SingletonBase<DirectXSystem>
 		{
 		public:
+			/// <summary>
+		    /// </summary>
+		    /// ルートパラメータで使用されるインデックス
+			enum RootParamType
+			{
+				Texture = 0,
+				Constant,
+				Count
+			};
+
 			friend class SingletonBase<DirectXSystem>;
 
 			void update();

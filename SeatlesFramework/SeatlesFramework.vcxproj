@@ -143,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="assert.cpp" />
+    <ClCompile Include="component.cpp" />
     <ClCompile Include="debugUtility.cpp" />
     <ClCompile Include="directXSystem.cpp" />
     <ClCompile Include="material.cpp" />
@@ -156,6 +157,7 @@
   <ItemGroup>
     <ClInclude Include="application.h" />
     <ClInclude Include="assert.h" />
+    <ClInclude Include="component.h" />
     <ClInclude Include="debugUtility.h" />
     <ClInclude Include="directX.h" />
     <ClInclude Include="directXSystem.h" />

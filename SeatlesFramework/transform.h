@@ -1,21 +1,26 @@
 #pragma once
 #include "directX.h"
+#include "component.h"
 
 namespace seatlesFramework
 {
 	/// <summary>
-	/// Position,Rotation,Scale‚Ì’l‚ğŠÇ—‚·‚é
+	/// GameObject‚ÌPosition,Rotation,Scale‚Ì’l‚ğŠÇ—‚·‚é
 	/// </summary>
-	class Transform
+	class Transform: public Component
 	{
 	public:
 		Transform();
 		~Transform();
 
-		void update();
+		void awake() override;
+		void update() override;
 
+		ID3D12DescriptorHeap* getDescriptorHeap() const { return mpDescriptorHeap; }
 	private: 
 		XMMATRIX mWorldMatrix;
 
+		ID3D12Resource* mpConstantBuffer;
+		ID3D12DescriptorHeap* mpDescriptorHeap;
 	};
 }
