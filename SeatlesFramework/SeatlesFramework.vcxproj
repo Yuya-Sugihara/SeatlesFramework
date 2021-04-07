@@ -149,6 +149,7 @@
     <ClCompile Include="SeatlesFramework.cpp" />
     <ClCompile Include="singletonBase.cpp" />
     <ClCompile Include="shape.cpp" />
+    <ClCompile Include="textureLoader.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -160,6 +161,7 @@
     <ClInclude Include="material.h" />
     <ClInclude Include="singletonBase.h" />
     <ClInclude Include="shape.h" />
+    <ClInclude Include="textureLoader.h" />
     <ClInclude Include="utility.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
@@ -183,6 +185,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="BasicType.hlsli" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="image\textest.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

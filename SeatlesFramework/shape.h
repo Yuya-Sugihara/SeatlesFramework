@@ -12,7 +12,8 @@ namespace SeatlesFramework
 {
 	namespace render
 	{
-		class Texture;
+		class RandomTexture;
+		class ImageTexture;
 
 		class Shape
 		{

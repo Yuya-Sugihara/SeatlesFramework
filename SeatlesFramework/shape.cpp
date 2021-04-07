@@ -108,7 +108,9 @@ Rectangle::Rectangle(Vertex vertex1, Vertex vertex2, Vertex vertex3, Vertex vert
 {
 	//	À•WÝ’è
 	mVertices = { vertex1,vertex2,vertex3,vertex4 };
-	mpTexture = new Texture();
+	mpTexture = new ImageTexture(L"image/textest.png");
+	//mpTexture = new RandomTexture();
+	mpTexture->setup();
 
 	initialize();
 }

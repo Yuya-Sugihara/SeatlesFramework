@@ -32,6 +32,33 @@ namespace SeatlesFramework
 		class Texture
 		{
 		public:
+			Texture();
+			virtual ~Texture();
+			
+			void setup();
+			ID3D12DescriptorHeap* getDescriptorHeap()const { return mpDescriptorHeap; }
+		
+		protected:
+			virtual void setTexture() = 0;
+			virtual void setResourceDesc() = 0;
+			virtual void writeToSubResource() = 0;
+			virtual void setHeapProperty();
+			virtual void createTextureBuffer();
+			virtual void createDescriptorHeap();
+			virtual void createShaderResourceView();
+
+			D3D12_RESOURCE_DESC mResourceDesc;
+			D3D12_HEAP_PROPERTIES mHeapProperty;
+			D3D12_DESCRIPTOR_HEAP_DESC mDescHeapDesc;
+			D3D12_SHADER_RESOURCE_VIEW_DESC mSrvDesc;
+
+			ID3D12Resource* mpTextureBuffer;
+			ID3D12DescriptorHeap* mpDescriptorHeap;
+		};
+
+		class RandomTexture :public Texture
+		{
+		public: 
 			struct TexRGBA
 			{
 				unsigned char r;
@@ -40,19 +67,35 @@ namespace SeatlesFramework
 				unsigned char a;
 			};
 
-			Texture();
-			~Texture();
+			RandomTexture();
 
-			//	ランダムなテクスチャーデータをセットする
-			void setRandomTexture();
-			ID3D12DescriptorHeap* getDescriptorHeap()const { return mpDescriptorHeap; }
+		protected:
+			void setTexture() override;
+			void setResourceDesc() override;
+			void writeToSubResource() override;
+
 		private:
 			int mTextureWidth;
 			int mTextureHeight;
 
 			vector<TexRGBA> mTextureData;
-			ID3D12Resource* mpTextureBuffer;
-			ID3D12DescriptorHeap* mpDescriptorHeap;
+		};
+
+		class ImageTexture :public Texture
+		{
+		public: 
+			ImageTexture(const wchar_t* fileName);
+		
+		protected:
+			void setTexture() override;
+			void setResourceDesc() override;
+			void writeToSubResource() override;
+			void createShaderResourceView() override;
+
+		private: 
+			const wchar_t* mFileName;
+			ScratchImage mScratchImage;
+			TexMetadata mMetaData;
 		};
 	}
 }
